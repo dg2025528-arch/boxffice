@@ -9,7 +9,7 @@ import streamlit as st
 st.set_page_config(page_title="어제의 박스오피스", page_icon="🎬", layout="wide")
 
 # 인증키는 비밀 금고(secrets)에서 불러온다 — 코드에 직접 쓰지 않는다
-API_KEY = st.secrets["KOBIS_KEY = "b2f8b3bded6d4bcfc4f0025b8606d26c""]
+API_KEY = st.secrets["KOBIS_KEY"]
 URL = "https://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchDailyBoxOfficeList.json"
 
 # '어제'를 한국 시간 기준으로 계산한다 (배포 서버의 시계는 한국 시간이 아니다)
