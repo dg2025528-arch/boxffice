@@ -41,12 +41,6 @@ st.sidebar.divider()
 
 top_n = st.sidebar.slider("그래프에 표시할 영화 개수", min_value=3, max_value=10, value=5)
 
-color_theme = st.sidebar.selectbox(
-    "그래프 색상 테마",
-    options=["Blues", "Reds", "Greens", "Purples", "Oranges"],
-    index=0,
-)
-
 st.sidebar.divider()
 st.sidebar.caption("데이터 출처: KOBIS 영화진흥위원회 open API")
 
@@ -124,8 +118,12 @@ with tab_table:
     keyword = st.text_input("🔍 영화명으로 검색해 보세요", placeholder="예: 범죄도시")
 
     table_df = df.sort_values("rank")
+
     if keyword:
-        table_df = table_df[table_df["movieNm"].str.contains(keyword, case=False, na=False)]
+        # strip()으로 앞뒤 공백 제거, regex=False로 특수문자를 그냥 글자로 취급
+        clean_keyword = keyword.strip()
+        mask = table_df["movieNm"].str.contains(clean_keyword, case=False, na=False, regex=False)
+        table_df = table_df[mask]
         if table_df.empty:
             st.info(f"'{keyword}'와(과) 일치하는 영화가 없습니다.")
 
@@ -155,9 +153,10 @@ with tab_table:
         hide_index=True,
         width="stretch",
         column_config={
-            "관객수": st.column_config.NumberColumn(format="%d명"),
+            # %,d 로 쓰면 천 단위마다 콤마가 자동으로 들어간다
+            "관객수": st.column_config.NumberColumn(format="%,d명"),
             "누적관객": st.column_config.ProgressColumn(
-                format="%d명",
+                format="%,d명",
                 min_value=0,
                 max_value=int(df["audiAcc"].max()),
             ),
@@ -173,12 +172,11 @@ with tab_chart:
         top_movies,
         x="movieNm",
         y="audiCnt",
-        color="audiCnt",
-        color_continuous_scale=color_theme,
         labels={"movieNm": "영화명", "audiCnt": "관객수"},
-        text_auto=True,
+        text_auto=",",  # 막대 위 숫자 표시에도 콤마 적용
     )
-    fig.update_layout(coloraxis_showscale=False)
+    # y축 눈금에도 천 단위 콤마 표시
+    fig.update_yaxes(tickformat=",")
     st.plotly_chart(fig, width="stretch")
 
     st.divider()
@@ -189,9 +187,8 @@ with tab_chart:
         x="scrnCnt",
         y="audiCnt",
         size="audiAcc",
-        color="rank",
         hover_name="movieNm",
-        labels={"scrnCnt": "스크린수", "audiCnt": "관객수", "rank": "순위"},
-        color_continuous_scale=color_theme,
+        labels={"scrnCnt": "스크린수", "audiCnt": "관객수"},
     )
+    fig2.update_yaxes(tickformat=",")
     st.plotly_chart(fig2, width="stretch")
